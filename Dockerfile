@@ -21,7 +21,12 @@ RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn &&\
 	rm stable-1.6.2.zip &&\
 	mv /opt/iF.SVNAdmin-stable-1.6.2 /opt/svnadmin &&\
 	ln -s /opt/svnadmin /var/www/localhost/htdocs/svnadmin &&\
-	chmod -R 777 /opt/svnadmin/data
+	chmod -R 777 /opt/svnadmin/data &&\
+    wget --no-check-certificate https://github.com/websvnphp/websvn/archive/refs/tags/2.8.1.zip &&\
+	unzip 2.8.1.zip -d /opt &&\
+	rm 2.8.1.zip &&\
+	mv /opt/websvn-2.8.1 /opt/websvn &&\
+	ln -s /opt/websvn /var/www/localhost/htdocs/websvn
 
 # Solve a security issue (https://alpinelinux.org/posts/Docker-image-vulnerability-CVE-2019-5021.html)	
 RUN sed -i -e 's/^root::/root:!:/' /etc/shadow
