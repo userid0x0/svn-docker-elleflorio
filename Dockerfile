@@ -37,6 +37,9 @@ ADD svnadmin/data/config.tpl.ini /opt/svnadmin/data/config.tpl.ini
 # Fixing https://github.com/mfreiholz/iF.SVNAdmin/issues/118
 ADD svnadmin/classes/util/global.func.php /opt/svnadmin/classes/util/global.func.php
 
+# Add WebSVN configuration
+ADD websvn/include/config.php /opt/websvn/include/config.php
+
 # Add services configurations
 ADD apache/ /etc/services.d/apache/
 ADD subversion/ /etc/services.d/subversion/
@@ -45,8 +48,11 @@ ADD subversion/ /etc/services.d/subversion/
 ADD subversion-access-control /etc/subversion/subversion-access-control
 RUN chmod a+w /etc/subversion/* && chmod a+w /home/svn
 
+# Apache
 # Add WebDav configuration
 ADD dav_svn.conf /etc/apache2/conf.d/dav_svn.conf
+# Add WebSVN 
+ADD websvn.conf /etc/apache2/conf.d/websvn.conf
 
 # Set HOME in non /root folder
 ENV HOME /home
