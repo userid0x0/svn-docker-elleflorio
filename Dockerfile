@@ -1,5 +1,34 @@
 # Alpine Linux with s6 service management
-FROM smebberson/alpine-base:3.2.0
+#FROM smebberson/alpine-base:3.2.0
+#FROM alpine:20230208 AS my-alpine-s6
+FROM alpine:latest AS my-alpine-s6
+
+ARG S6_OVERLAY_VERSION=3.1.4.1 \
+    GO_DNSMASQ_VERSION=1.0.7
+
+RUN apk add --no-cache wget xz &&\
+    wget --no-check-certificate https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz &&\
+	tar -C / -Jxpf s6-overlay-noarch.tar.xz &&\
+	rm s6-overlay-noarch.tar.xz &&\
+    wget --no-check-certificate https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz &&\
+	tar -C / -Jxpf s6-overlay-x86_64.tar.xz &&\
+	rm s6-overlay-x86_64.tar.xz &&\
+    apk add --no-cache bind-tools curl libcap && \
+    wget --no-check-certificate -O /bin/go-dnsmasq https://github.com/janeczku/go-dnsmasq/releases/download/${GO_DNSMASQ_VERSION}/go-dnsmasq-min_linux-amd64 &&\
+    chmod +x /bin/go-dnsmasq &&\
+    # create user and give binary permissions to bind to lower port
+    addgroup go-dnsmasq &&\
+    adduser -D -g "" -s /bin/sh -G go-dnsmasq go-dnsmasq &&\
+    setcap CAP_NET_BIND_SERVICE=+eip /bin/go-dnsmasq &&\
+    apk del wget xz
+
+COPY root /
+RUN chmod +x /etc/services.d/resolver/*
+
+ENTRYPOINT ["/init"]
+
+FROM my-alpine-s6
+
 
 	# Install Apache2 and other stuff needed to access svn via WebDav
 	# Install svn
@@ -7,11 +36,11 @@ FROM smebberson/alpine-base:3.2.0
 	# Create required folders
 	# Create the authentication file for http access
 	# Getting SVNADMIN interface
-RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn &&\
-	apk add --no-cache subversion &&\
-	apk add --no-cache wget unzip php7 php7-apache2 php7-session php7-json php7-ldap &&\
-	apk add --no-cache php7-xml &&\	
-	sed -i 's/;extension=ldap/extension=ldap/' /etc/php7/php.ini &&\
+RUN apk add --no-cache apache2 apache2-ctl apache2-utils apache2-webdav mod_dav_svn &&\
+	apk add --no-cache subversion subversion &&\
+	apk add --no-cache wget unzip xz &&\
+        apk add --no-cache php81 php81-apache2 php81-session php81-json php81-ldap php81-xml &&\	
+	sed -i 's/;extension=ldap/extension=ldap/' /etc/php81/php.ini &&\
 	mkdir -p /run/apache2/ &&\
 	mkdir /home/svn/ &&\
 	mkdir /etc/subversion &&\
@@ -43,6 +72,7 @@ ADD websvn/include/config.php /opt/websvn/include/config.php
 # Add services configurations
 ADD apache/ /etc/services.d/apache/
 ADD subversion/ /etc/services.d/subversion/
+RUN chmod +x /etc/services.d/apache/* /etc/services.d/subversion/*
 
 # Add SVNAuth file
 ADD subversion-access-control /etc/subversion/subversion-access-control
