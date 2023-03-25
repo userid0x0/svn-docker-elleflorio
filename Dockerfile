@@ -1,7 +1,7 @@
 # Alpine Linux with s6 service management
 #FROM smebberson/alpine-base:3.2.0
-#FROM alpine:20230208 AS my-alpine-s6
-FROM alpine:latest AS my-alpine-s6
+FROM alpine:20230208 AS my-alpine-s6
+#FROM alpine:latest AS my-alpine-s6
 
 ARG S6_OVERLAY_VERSION=3.1.4.1 \
     GO_DNSMASQ_VERSION=1.0.7
@@ -36,19 +36,16 @@ FROM my-alpine-s6
 	# Create required folders
 	# Create the authentication file for http access
 	# Getting SVNADMIN interface
+COPY iF.SVNAdmin /opt/svnadmin
 RUN apk add --no-cache apache2 apache2-ctl apache2-utils apache2-webdav mod_dav_svn &&\
-	apk add --no-cache subversion subversion &&\
+	apk add --no-cache subversion subversion-tools &&\
 	apk add --no-cache wget unzip xz &&\
-        apk add --no-cache php81 php81-apache2 php81-session php81-json php81-ldap php81-xml &&\	
-	sed -i 's/;extension=ldap/extension=ldap/' /etc/php81/php.ini &&\
+        apk add --no-cache php82 php82-apache2 php82-session php82-json php82-ldap php82-xml &&\	
+	sed -i 's/;extension=ldap/extension=ldap/' /etc/php82/php.ini &&\
 	mkdir -p /run/apache2/ &&\
 	mkdir /home/svn/ &&\
 	mkdir /etc/subversion &&\
 	touch /etc/subversion/passwd &&\
-    wget --no-check-certificate https://github.com/mfreiholz/iF.SVNAdmin/archive/stable-1.6.2.zip &&\
-	unzip stable-1.6.2.zip -d /opt &&\
-	rm stable-1.6.2.zip &&\
-	mv /opt/iF.SVNAdmin-stable-1.6.2 /opt/svnadmin &&\
 	ln -s /opt/svnadmin /var/www/localhost/htdocs/svnadmin &&\
 	chmod -R 777 /opt/svnadmin/data &&\
     wget --no-check-certificate https://github.com/websvnphp/websvn/archive/refs/tags/2.8.1.zip &&\
@@ -63,8 +60,6 @@ RUN sed -i -e 's/^root::/root:!:/' /etc/shadow
 # svnadmin
 # Configuration template
 ADD svnadmin/data/config.tpl.ini /opt/svnadmin/data/config.tpl.ini
-# Fixing https://github.com/mfreiholz/iF.SVNAdmin/issues/118
-ADD svnadmin/classes/util/global.func.php /opt/svnadmin/classes/util/global.func.php
 
 # Add WebSVN configuration
 ADD websvn/include/config.php /opt/websvn/include/config.php
