@@ -27,7 +27,8 @@ RUN chmod +x /etc/services.d/resolver/*
 
 ENTRYPOINT ["/init"]
 
-FROM my-alpine-s6
+#FROM my-alpine-s6
+FROM crazymax/alpine-s6:edge
 
 
 	# Install Apache2 and other stuff needed to access svn via WebDav
